@@ -1,0 +1,38 @@
+services:
+  # FastAPIアプリケーションサービス
+  app:
+    build: .
+    container_name: heart_checker_app
+    ports:
+      - "8000:8000"
+    volumes:
+      # ローカルのappディレクトリをコンテナの/appにマウントし、コード変更を即時反映
+      - ./app:/app
+      # ダウンロードしたデータを永続化
+      - ./data:/app/data
+    environment:
+      # データベース接続情報（後ほどFastAPIアプリから参照）
+      - DATABASE_URL=postgresql://user:password@db:5432/heart_db
+    # dbサービスが起動してからappサービスを起動する
+    depends_on:
+      - db
+    # コンテナ起動時に実行するコマンド
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  # PostgreSQLデータベースサービス
+  db:
+    image: postgres:15
+    container_name: heart_checker_db
+    volumes:
+      # DBのデータを永続化
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=heart_db
+    ports:
+      # ローカルの5432ポートに接続するとコンテナのDBに繋がる（デバッグ用）
+      - "5432:5432"
+
+volumes:
+  postgres_data:

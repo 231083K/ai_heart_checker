@@ -1,0 +1,18 @@
+# FastAPI
+fastapi
+uvicorn[standard]
+
+# データサイエンス & 機械学習
+wfdb
+numpy
+pandas
+scipy
+scikit-learn
+matplotlib
+torch
+torchvision
+torchaudio
+
+# データベース
+sqlalchemy
+psycopg2-binary
