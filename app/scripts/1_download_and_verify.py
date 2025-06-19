@@ -2,45 +2,48 @@ import wfdb
 import matplotlib.pyplot as plt
 import os
 
-# データベース名とダウンロード先のディレクトリ
+# データベース名 (PhysioNet上)
 DB_NAME = 'mitdb'
+# データを保存するローカルディレクトリ
 DATA_DIR = './data/mit-bih-db'
-RECORDS_TO_CHECK = ['100', '101', '103'] # 確認対象のレコード
+# 今回、処理対象とするレコードのリスト
+RECORDS_TO_CHECK = ['100', '101', '103', '200', '201', '203']
 
 def main():
     """
-    MIT-BIH Arrhythmia Databaseをダウンロードし、
-    指定したレコードの波形とアノテーションをプロットして検証する。
+    指定したレコードについて、データを読み込み（なければダウンロードし）、
+    波形とアノテーションをプロットして検証する。
     """
-    print("--- Phase 1.3: Data Collection & Preparation ---")
+    print("--- Phase 1.3: Data Collection & Preparation (Robust Method) ---")
 
-    # 1. データベースのダウンロード
-    print(f"Downloading MIT-BIH Arrhythmia Database ('{DB_NAME}') to '{DATA_DIR}'...")
-    # データベース全体をダウンロード（既に存在する場合はスキップされる）
-    wfdb.dl_database(DB_NAME, DATA_DIR)
-    print("Download complete.")
+    # データ保存用ディレクトリがなければ作成
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR)
+        print(f"Created local directory: {DATA_DIR}")
 
-    # 2. レコードの読み込みと可視化による検証
+    # 2. 指定したレコードの読み込みと可視化による検証
     for record_name in RECORDS_TO_CHECK:
-        print(f"\nVerifying record: {record_name}")
-        record_path = os.path.join(DATA_DIR, record_name)
+        print(f"\nProcessing record: {record_name}")
 
         try:
             # レコード（波形データ）を読み込み
-            record = wfdb.rdrecord(record_path)
+            # ローカルのDATA_DIRにファイルがなければ、PhysioNetのpn_dirから自動ダウンロードされる
+            record = wfdb.rdrecord(record_name, pn_dir=f'{DB_NAME}/1.0.0', local_dir=DATA_DIR)
+            
             # アノテーション（心拍の診断情報）を読み込み
-            annotation = wfdb.rdann(record_path, 'atr')
+            annotation = wfdb.rdann(record_name, 'atr', pn_dir=f'{DB_NAME}/1.0.0', local_dir=DATA_DIR)
 
             print(f"Record {record_name} loaded successfully.")
             print(f"  - Sampling frequency: {record.fs} Hz")
             print(f"  - Signal length: {record.sig_len} samples")
             print(f"  - Number of annotations: {len(annotation.symbol)}")
 
-            # 波形とアノテーションをプロット
+            # 波形とアノテーションをプロット (最初の10秒間)
             fig, ax = plt.subplots(figsize=(15, 5))
             wfdb.plot_wfdb(record=record, annotation=annotation,
-                           title=f'Record {record_name} from MIT-BIH DB',
-                           time_units='seconds', ax=[ax]) # ax=[ax]で描画先を指定
+                           title=f'Record {record_name} from MIT-BIH DB (First 10 seconds)',
+                           time_units='seconds', ax=[ax], plot_sym=True)
+            ax.set_xlim(0, 10) # X軸を0秒から10秒に制限
 
             # プロットを画像ファイルとして保存
             output_filename = f'./data/record_{record_name}_plot.png'
@@ -52,7 +55,4 @@ def main():
             print(f"Error processing record {record_name}: {e}")
 
 if __name__ == '__main__':
-    # dataディレクトリがなければ作成
-    if not os.path.exists('./data'):
-        os.makedirs('./data')
     main()

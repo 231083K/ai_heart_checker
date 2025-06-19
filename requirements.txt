@@ -16,3 +16,5 @@ torchaudio
 # データベース
 sqlalchemy
 psycopg2-binary
+tqdm
+seaborn
