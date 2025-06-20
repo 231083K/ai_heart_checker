@@ -18,3 +18,4 @@ sqlalchemy
 psycopg2-binary
 tqdm
 seaborn
+imbalanced-learn
