@@ -20,8 +20,8 @@
     <div class="upload-form">
         <form action="/diagnose" method="post" enctype="multipart/form-data">
             <h2>ファイルを選択</h2>
-            <p>診断したいレコードの .dat ファイルと .hea ファイルの両方を選択してください。</p>
-            <input type="file" name="files" multiple required>
+            <p>診断したいレコードの .dat と .hea ファイルのペア、<br>または 'signal' 列を持つ単一の .csv ファイルを選択してください。</p>
+            <input type="file" name="files" multiple required accept=".dat,.hea,.csv">
             <br>
             <button type="submit">診断を開始</button>
         </form>
