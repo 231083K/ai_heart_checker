@@ -19,3 +19,4 @@ psycopg2-binary
 tqdm
 seaborn
 imbalanced-learn
+python-multipart

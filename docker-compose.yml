@@ -9,13 +9,13 @@ services:
       - ./app:/app
       # ダウンロードしたデータを永続化
       - ./data:/app/data
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/heart_db
     # dbサービスが起動してからappサービスを起動する
