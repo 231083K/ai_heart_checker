@@ -1,78 +1,45 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>診断結果 - 心拍診断AIチェッカー</title>
-    <style>
-        body { font-family: sans-serif; line-height: 1.6; padding: 2em; max-width: 1000px; margin: 0 auto; color: #333; }
-        h1, h2 { text-align: center; color: #333; }
-        .back-link { display: block; text-align: center; margin-top: 2em; color: #007bff; text-decoration: none; }
-        .back-link:hover { text-decoration: underline; }
+{% extends "base.html" %}
 
-        /* --- ▼▼▼ 新しいスタイル ▼▼▼ --- */
-        .risk-summary {
-            padding: 1.5em;
-            margin-bottom: 2em;
-            border-left-width: 8px;
-            border-left-style: solid;
-            border-radius: 8px;
-            background-color: #f8f9fa;
-        }
-        .risk-summary.risk-normal { border-color: #28a745; }
-        .risk-summary.risk-low { border-color: #ffc107; }
-        .risk-summary.risk-medium { border-color: #fd7e14; }
-        .risk-summary.risk-high { border-color: #dc3545; }
+{% block title %}診断結果 - {{ super() }}{% endblock %}
 
-        .risk-summary h2 { margin-top: 0; text-align: left; }
-        .risk-summary .percentage { font-size: 1.5em; font-weight: bold; margin: 0.5em 0; }
-        .risk-summary .text { font-size: 1.1em; }
-        /* --- ▲▲▲ 新しいスタイル ▲▲▲ --- */
+{% block content %}
+<h2>診断結果</h2>
 
-        .result-container { display: flex; flex-wrap: wrap; gap: 2em; align-items: flex-start; }
-        .summary { border: 1px solid #ddd; padding: 1.5em; border-radius: 8px; flex-basis: 100%; order: 2; }
-        .plot { flex-basis: 100%; text-align: center; order: 1; }
-        .plot img { max-width: 100%; border: 1px solid #ddd; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 0.8em; text-align: left; }
-        th { background-color: #f2f2f2; }
-    </style>
-</head>
-<body>
-    <h1>診断結果</h1>
+{% if results.error %}
+    <div class="risk-summary risk-high">
+        <h2>エラー</h2>
+        <p class="text">{{ results.error }}</p>
+    </div>
+{% else %}
+    <div class="risk-summary risk-{{ results.summary.level }}">
+        <h2>総合評価</h2>
+        <p class="percentage">異常な心拍の割合: {{ "%.1f"|format(results.summary.abnormal_percentage) }}%</p>
+        <p class="text">{{ results.summary.text }}</p>
+    </div>
 
-    {% if results.error %}
-        <p style="color: red; text-align: center;">エラー: {{ results.error }}</p>
-    {% else %}
-        <div class="risk-summary risk-{{ results.summary.level }}">
-            <h2>総合評価</h2>
-            <p class="percentage">異常な心拍の割合: {{ "%.1f"|format(results.summary.abnormal_percentage) }}%</p>
-            <p class="text">{{ results.summary.text }}</p>
+    <div class="result-container">
+        <div class="plot content-box">
+            <h3>心電図波形（最初の10秒）</h3>
+            <p>AIが異常の可能性があると判断した心拍をハイライトしています。</p>
+            <img src="data:image/png;base64,{{ results.plot_base64 }}" alt="心電図波形グラフ">
         </div>
-        <div class="result-container">
-            <div class="plot">
-                <h2>心電図波形（最初の10秒）</h2>
-                <p>AIが異常の可能性があると判断した心拍をハイライトしています。</p>
-                <img src="data:image/png;base64,{{ results.plot_base64 }}" alt="心電図波形グラフ">
-            </div>
-            <div class="summary">
-                <h2>詳細な診断結果</h2>
-                <table>
-                    <tr>
-                        <th>心拍タイプ</th>
-                        <th>検出数</th>
-                    </tr>
-                    {% for class_name, count in results.counts.items() %}
-                    <tr>
-                        <td>{{ class_name }}</td>
-                        <td>{{ count }}</td>
-                    </tr>
-                    {% endfor %}
-                </table>
-            </div>
+        <div class="summary content-box">
+            <h3>詳細な診断結果</h3>
+            <table>
+                <tr>
+                    <th>心拍タイプ</th>
+                    <th>検出数</th>
+                </tr>
+                {% for class_name, count in results.counts.items() %}
+                <tr>
+                    <td>{{ class_name }}</td>
+                    <td>{{ count }}</td>
+                </tr>
+                {% endfor %}
+            </table>
         </div>
-    {% endif %}
+    </div>
+{% endif %}
 
-    <a href="/" class="back-link">別のファイルを診断する</a>
-</body>
-</html>
+<a href="/" style="display:block; text-align:center; margin-top:2em;">別のファイルを診断する</a>
+{% endblock %}

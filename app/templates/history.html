@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}診断履歴 - {{ super() }}{% endblock %}
+
+{% block content %}
+<h2>診断履歴</h2>
+
+<div class="content-box">
+{% if history %}
+    <table>
+        <thead>
+            <tr>
+                <th>診断ID</th>
+                <th>診断日時</th>
+                <th>ファイル名</th>
+                <th>リスクレベル</th>
+                <th>サマリー</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in history %}
+            <tr>
+                <td>{{ result.id }}</td>
+                <td>{{ result.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>{{ result.source_filename }}</td>
+                <td class="risk-{{ result.risk_level }}"><strong>{{ result.risk_level.upper() }}</strong></td>
+                <td>{{ result.summary_text }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p style="text-align: center;">まだ診断履歴がありません。</p>
+{% endif %}
+</div>
+{% endblock %}

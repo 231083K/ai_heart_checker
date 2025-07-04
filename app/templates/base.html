@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}心拍診断AIチェッカー{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><a href="/" style="text-decoration: none; color: inherit;">心拍診断AIチェッカー</a></h1>
+            <nav class="nav-container">
+                {% if current_user %}
+                    <button id="hamburger-btn" class="hamburger-btn">
+                        <span class="bar"></span>
+                        <span class="bar"></span>
+                        <span class="bar"></span>
+                    </button>
+
+                    <div id="nav-menu" class="nav-menu">
+                        <div class="user-info">
+                            {{ current_user.username }} さん
+                        </div>
+                        <a href="/history">診断履歴</a>
+                        <a href="/logout">ログアウト</a>
+                    </div>
+                {% else %}
+                    <a href="/login">ログイン</a>
+                    <a href="/register">新規登録</a>
+                {% endif %}
+            </nav>
+        </header>
+
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    {% if current_user %}
+    <script>
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const navMenu = document.getElementById('nav-menu');
+
+        // ボタンクリックでメニューの表示/非表示を切り替える
+        hamburgerBtn.addEventListener('click', (event) => {
+            event.stopPropagation(); // 親要素へのクリックイベントの伝播を停止
+            navMenu.classList.toggle('is-active');
+        });
+
+        // メニューの外側をクリックしたらメニューを閉じる
+        document.addEventListener('click', () => {
+            if (navMenu.classList.contains('is-active')) {
+                navMenu.classList.remove('is-active');
+            }
+        });
+        
+        // メニュー自体のクリックでは閉じないようにする
+        navMenu.addEventListener('click', (event) => {
+            event.stopPropagation();
+        });
+    </script>
+    {% endif %}
+</body>
+</html>

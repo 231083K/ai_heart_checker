@@ -1,0 +1,200 @@
+/* --- Color Palette & Base --- */
+:root {
+    --bg-color: #121212;
+    --surface-color: #1e1e1e;
+    --primary-color: #0d6efd;
+    --primary-hover-color: #0b5ed7;
+    --text-color: #e0e0e0;
+    --text-muted-color: #8e8e8e;
+    --border-color: #444;
+
+    --risk-normal: #28a745;
+    --risk-low: #ffc107;
+    --risk-medium: #fd7e14;
+    --risk-high: #dc3545;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    line-height: 1.6;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 2em;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1em;
+}
+
+h1, h2 {
+    color: var(--text-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5em;
+}
+
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+/* --- Header --- */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1em;
+    margin-bottom: 2em;
+    border-bottom: 1px solid var(--border-color);
+}
+.header h1 {
+    border-bottom: none;
+    margin: 0;
+}
+.header nav a {
+    margin-left: 1em;
+}
+
+/* --- Forms --- */
+.form-box, .content-box {
+    background-color: var(--surface-color);
+    padding: 2em;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+input[type="file"], input[type="text"], input[type="password"] {
+    display: block;
+    width: 100%;
+    padding: 0.8em;
+    margin-bottom: 1em;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+button {
+    width: 100%;
+    padding: 0.8em 1.5em;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+button:hover {
+    background-color: var(--primary-hover-color);
+}
+
+/* --- Result & History Page --- */
+.risk-summary {
+    padding: 1.5em;
+    margin-bottom: 2em;
+    border-left-width: 8px;
+    border-left-style: solid;
+    border-radius: 8px;
+    background-color: var(--surface-color);
+}
+.risk-summary.risk-normal { border-color: var(--risk-normal); }
+.risk-summary.risk-low { border-color: var(--risk-low); }
+.risk-summary.risk-medium { border-color: var(--risk-medium); }
+.risk-summary.risk-high { border-color: var(--risk-high); }
+.risk-summary .percentage { font-size: 1.8em; font-weight: bold; }
+
+.result-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2em;
+}
+
+.plot img {
+    max-width: 100%;
+    border-radius: 8px;
+    background-color: white; /* グラフ自体は白背景なので */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    border: 1px solid var(--border-color);
+    padding: 0.8em;
+    text-align: left;
+}
+th {
+    background-color: #2a2a2a;
+}
+/* --- Hamburger Menu --- */
+.nav-container {
+    position: relative;
+}
+
+.hamburger-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 8px;
+    box-sizing: border-box;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.hamburger-btn .bar {
+    display: block;
+    width: 100%;
+    height: 3px;
+    background-color: var(--text-color);
+    border-radius: 2px;
+}
+
+.nav-menu {
+    position: absolute;
+    top: 50px; /* ヘッダーからの距離 */
+    right: 0;
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    width: 200px;
+    z-index: 1000;
+    display: none; /* 初期状態では非表示 */
+    padding: 0.5em 0;
+}
+
+.nav-menu.is-active {
+    display: block; /* is-activeクラスが付いたら表示 */
+}
+
+.nav-menu .user-info {
+    padding: 0.8em 1.2em;
+    font-weight: bold;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 0.5em;
+}
+
+.nav-menu a {
+    display: block;
+    padding: 0.8em 1.2em;
+    color: var(--text-color);
+    text-decoration: none;
+}
+
+.nav-menu a:hover {
+    background-color: var(--primary-color);
+    color: white;
+}

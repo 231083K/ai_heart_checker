@@ -1,41 +1,14 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>心拍診断AIチェッカー</title>
-    <style>
-        body { font-family: sans-serif; line-height: 1.6; padding: 2em; max-width: 800px; margin: 0 auto; }
-        h1 { text-align: center; }
-        .upload-form { border: 2px dashed #ccc; padding: 2em; text-align: center; border-radius: 8px; }
-        input[type="file"] { margin-bottom: 1em; }
-        button { padding: 0.8em 1.5em; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; }
-        button:hover { background-color: #0056b3; }
-    </style>
-</head>
-<body>
-        <header style="display: flex; justify-content: space-between; align-items: center;">
-        <h1>心拍診断AIチェッカー</h1>
-        <nav>
-            {% if current_user %}
-                <span>ようこそ, {{ current_user.username }} さん | </span>
-                <a href="/history">診断履歴</a> | 
-                <a href="/logout">ログアウト</a>
-            {% else %}
-                <a href="/login">ログイン</a>
-            {% endif %}
-        </nav>
-    </header>
-    <p>MIT-BIH形式の心電図データファイル（.dat と .hea）をアップロードしてください。AIが不整脈の可能性を診断します。</p>
-    
-    <div class="upload-form">
-        <form action="/diagnose" method="post" enctype="multipart/form-data">
-            <h2>ファイルを選択</h2>
-            <p>診断したいレコードの .dat と .hea ファイルのペア、<br>または 'signal' 列を持つ単一の .csv ファイルを選択してください。</p>
-            <input type="file" name="files" multiple required accept=".dat,.hea,.csv">
-            <br>
-            <button type="submit">診断を開始</button>
-        </form>
-    </div>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}ホーム - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="content-box">
+    <h2>心電図データをアップロード</h2>
+    <p>診断したいレコードの .dat と .hea ファイルのペア、または 'signal' 列を持つ単一の .csv ファイルを選択してください。</p>
+    <form action="/diagnose" method="post" enctype="multipart/form-data">
+        <input type="file" name="files" multiple required accept=".dat,.hea,.csv">
+        <button type="submit">診断を開始</button>
+    </form>
+</div>
+{% endblock %}
