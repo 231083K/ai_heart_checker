@@ -14,7 +14,18 @@
     </style>
 </head>
 <body>
-    <h1>心拍診断AIチェッカー</h1>
+        <header style="display: flex; justify-content: space-between; align-items: center;">
+        <h1>心拍診断AIチェッカー</h1>
+        <nav>
+            {% if current_user %}
+                <span>ようこそ, {{ current_user.username }} さん | </span>
+                <a href="/history">診断履歴</a> | 
+                <a href="/logout">ログアウト</a>
+            {% else %}
+                <a href="/login">ログイン</a>
+            {% endif %}
+        </nav>
+    </header>
     <p>MIT-BIH形式の心電図データファイル（.dat と .hea）をアップロードしてください。AIが不整脈の可能性を診断します。</p>
     
     <div class="upload-form">

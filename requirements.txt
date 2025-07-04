@@ -20,3 +20,5 @@ tqdm
 seaborn
 imbalanced-learn
 python-multipart
+bcrypt==4.1.3
+python-jose
