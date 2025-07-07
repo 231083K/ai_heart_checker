@@ -6,7 +6,6 @@ __pycache__/
 .env
 
 # Docker
-# /data/ ディレクトリはダウンロードした大容量データを含むため、Git管理から除外
 /data/
 
 # IDE/Editor settings
@@ -18,3 +17,4 @@ __pycache__/
 Thumbs.db
 
 *.log
+test.txt

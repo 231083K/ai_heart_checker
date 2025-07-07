@@ -10,7 +10,6 @@
     <table>
         <thead>
             <tr>
-                <th>診断ID</th>
                 <th>診断日時</th>
                 <th>ファイル名</th>
                 <th>リスクレベル</th>
@@ -20,10 +19,9 @@
         <tbody>
             {% for result in history %}
             <tr>
-                <td>{{ result.id }}</td>
                 <td>{{ result.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
                 <td>{{ result.source_filename }}</td>
-                <td class="risk-{{ result.risk_level }}"><strong>{{ result.risk_level.upper() }}</strong></td>
+                <td class="risk-display risk-{{ result.risk_level }}"><strong>{{ result.risk_level.upper() }}</strong></td>
                 <td>{{ result.summary_text }}</td>
             </tr>
             {% endfor %}
