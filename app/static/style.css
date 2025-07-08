@@ -8,11 +8,11 @@
     --text-muted-color: #8e8e8e;
     --border-color: #444;
 
-    /* リスクレベルの色を定義 */
-    --risk-normal: #28a745; /* Green */
-    --risk-low: #28a745;    /* Green */
-    --risk-medium: #ffc107; /* Yellow */
-    --risk-high: #dc3545;   /* Red */
+    /* ★★★ リスクレベルの色を定義し直し ★★★ */
+    --risk-high:   #dc3545; /* 赤 */
+    --risk-medium: #ffc107; /* 黄 */
+    --risk-low:    #28a745; /* 緑 */
+    --risk-normal: #28a745; /* 緑 */
 }
 
 body {
@@ -24,14 +24,42 @@ body {
     padding: 2em;
 }
 
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1em;
+}
 
-h1, h2 { color: var(--text-color); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5em; }
-a { color: var(--primary-color); text-decoration: none; }
-a:hover { text-decoration: underline; }
-.container { max-width: 1000px; margin: 0 auto; padding: 0 1em; }
-.header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 1em; margin-bottom: 2em; border-bottom: 1px solid var(--border-color); }
-.header h1 { border-bottom: none; margin: 0; }
-.header nav a { margin-left: 1em; }
+h1, h2 {
+    color: var(--text-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5em;
+}
+
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+/* --- Header --- */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1em;
+    margin-bottom: 2em;
+    border-bottom: 1px solid var(--border-color);
+}
+.header h1 a {
+    text-decoration: none;
+    color: inherit;
+}
+.header nav a {
+    margin-left: 1em;
+}
 
 /* --- Forms --- */
 .form-box, .content-box {
@@ -41,32 +69,89 @@ a:hover { text-decoration: underline; }
     border: 1px solid var(--border-color);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
-input[type="file"], input[type="text"], input[type="password"] { display: block; width: 100%; padding: 0.8em; margin-bottom: 1em; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 5px; box-sizing: border-box; }
-button { width: 100%; padding: 0.8em 1.5em; background-color: var(--primary-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1.1em; font-weight: bold; transition: background-color 0.2s; }
-button:hover { background-color: var(--primary-hover-color); }
+
+input[type="file"], input[type="text"], input[type="password"] {
+    display: block;
+    width: 100%;
+    padding: 0.8em;
+    margin-bottom: 1em;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+button {
+    width: 100%;
+    padding: 0.8em 1.5em;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+button:hover {
+    background-color: var(--primary-hover-color);
+}
 
 .error-message { color: var(--risk-high); background-color: rgba(220, 53, 69, 0.1); border: 1px solid var(--risk-high); padding: 1em; border-radius: 5px; }
 .success-message { color: var(--risk-normal); background-color: rgba(40, 167, 69, 0.1); border: 1px solid var(--risk-normal); padding: 1em; border-radius: 5px; }
 
 
-.risk-summary { /* (変更なし) */ }
-.risk-summary.risk-normal { border-color: var(--risk-normal); }
-.risk-summary.risk-low { border-color: var(--risk-low); }
-.risk-summary.risk-medium { border-color: var(--risk-medium); }
-.risk-summary.risk-high { border-color: var(--risk-high); }
+/* --- Result & History Page --- */
+
+/* 結果ページのサマリーボックスの左枠の色 */
+.risk-summary {
+    padding: 1.5em;
+    margin-bottom: 2em;
+    border-left-width: 8px;
+    border-left-style: solid;
+    border-radius: 8px;
+    background-color: var(--surface-color);
+}
+.risk-summary.risk-high   { border-left-color: var(--risk-high); }
+.risk-summary.risk-medium { border-left-color: var(--risk-medium); }
+.risk-summary.risk-low    { border-left-color: var(--risk-low); }
+.risk-summary.risk-normal { border-left-color: var(--risk-normal); }
 .risk-summary .percentage { font-size: 1.8em; font-weight: bold; }
 
-.result-container { display: grid; grid-template-columns: 1fr 1fr; gap: 2em; }
-.plot img { max-width: 100%; border-radius: 8px; background-color: white; }
+.result-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2em;
+}
 
-table { width: 100%; border-collapse: collapse; }
-th, td { border: 1px solid var(--border-color); padding: 0.8em; text-align: left; }
-th { background-color: #2a2a2a; }
+.plot img {
+    max-width: 100%;
+    border-radius: 8px;
+    background-color: white;
+}
 
-.risk-display.risk-normal, .risk-display.risk-low { color: var(--risk-low); } /* NormalとLowは緑 */
-.risk-display.risk-medium { color: var(--risk-medium); } /* Mediumは黄色 */
-.risk-display.risk-high { color: var(--risk-high); } /* Highは赤 */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    border: 1px solid var(--border-color);
+    padding: 0.8em;
+    text-align: left;
+}
+th {
+    background-color: #2a2a2a;
+}
 
+/* ★★★ 履歴画面のリスク表示のテキストの色分け ★★★ */
+.risk-display.risk-high   { color: var(--risk-high); }
+.risk-display.risk-medium { color: var(--risk-medium); }
+.risk-display.risk-low    { color: var(--risk-low); }
+.risk-display.risk-normal { color: var(--risk-normal); }
+
+/* --- Hamburger Menu --- */
+/* (ハンバーガーメニューのスタイルは変更なし) */
 .nav-container { position: relative; }
 .hamburger-btn { width: 40px; height: 40px; display: flex; flex-direction: column; justify-content: space-around; padding: 8px; box-sizing: border-box; background-color: transparent; border: none; cursor: pointer; }
 .hamburger-btn .bar { display: block; width: 100%; height: 3px; background-color: var(--text-color); border-radius: 2px; }
