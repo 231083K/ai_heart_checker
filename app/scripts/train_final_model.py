@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import torch
-import torch.nn as nn
+# import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, Dataset
 from sklearn.metrics import classification_report, confusion_matrix
@@ -108,7 +108,6 @@ def evaluate(model, test_loader, device, figure_savename):
     print(f"Confusion matrix saved to {os.path.join(FIGURE_SAVE_PATH, figure_savename)}")
 
 def prepare_pretrain_loader():
-    # ... (この関数の中身は変更なし)
     print("--- Loading data for Pre-training Phase ---")
     X_ptbxl = np.load(os.path.join(PROCESSED_DATA_DIR, 'X_pretrain_ptbxl.npy'))
     y_ptbxl = np.load(os.path.join(PROCESSED_DATA_DIR, 'y_pretrain_ptbxl.npy'))
@@ -123,7 +122,6 @@ def prepare_pretrain_loader():
     return pretrain_loader
 
 def prepare_finetune_loader():
-    # ... (この関数の中身は変更なし)
     print("\n--- Loading data for Fine-tuning Phase ---")
     X_mit_train = np.load(os.path.join(PROCESSED_DATA_DIR, 'X_train.npy'))
     y_mit_train = np.load(os.path.join(PROCESSED_DATA_DIR, 'y_train.npy'))
