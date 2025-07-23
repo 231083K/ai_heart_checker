@@ -6,7 +6,6 @@ import torch.nn.functional as F
 import torch.optim as optim 
 from tqdm import tqdm
 
-# --- データ拡張のための関数群 ---
 def add_noise(signal, noise_level=0.05): return signal + np.random.normal(0, noise_level, signal.shape)
 def scale_amplitude(signal, scale_factor_range=(0.9, 1.1)): return signal * np.random.uniform(scale_factor_range[0], scale_factor_range[1])
 def time_shift(signal, max_shift=10): return np.roll(signal, np.random.randint(-max_shift, max_shift))
@@ -71,7 +70,6 @@ PRETRAIN_LR = 0.001
 FROZEN_FINETUNE_LR = 0.0001
 UNFROZEN_FINETUNE_LR = 1e-6
 
-# --- ResNetのコアとなるResidual Block ---
 class ResidualBlock(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1):
         super(ResidualBlock, self).__init__()
@@ -94,7 +92,6 @@ class ResidualBlock(nn.Module):
         out = F.relu(out)
         return out
 
-# --- ResNetを組み込んだ新しいモデル ---
 class ECG_ResNet(nn.Module):
     def __init__(self, num_classes=NUM_CLASSES):
         super(ECG_ResNet, self).__init__()
@@ -133,7 +130,7 @@ def run_resnet_training():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
-    # --- 1. 事前学習フェーズ ---
+    # --- 1. 事前学習 ---
     pretrain_loader = prepare_pretrain_loader()
     model = ECG_ResNet(num_classes=NUM_CLASSES).to(device)
     criterion = nn.CrossEntropyLoss()
@@ -152,7 +149,7 @@ def run_resnet_training():
             optimizer.step()
             progress_bar.set_postfix(loss=f"{loss.item():.4f}")
     
-    # --- 2. 凍結ファインチューニングフェーズ ---
+    # --- 2. 凍結ファインチューニング ---
     finetune_loader = prepare_finetune_loader()
     for param in model.parameters():
         param.requires_grad = False
@@ -173,7 +170,7 @@ def run_resnet_training():
             optimizer_ft.step()
             progress_bar.set_postfix(loss=f"{loss.item():.4f}")
 
-    # --- 3. 全層ファインチューニングフェーズ ---
+    # --- 3. 全層ファインチューニング ---
     for param in model.parameters():
         param.requires_grad = True
     optimizer_full = optim.Adam(model.parameters(), lr=UNFROZEN_FINETUNE_LR)

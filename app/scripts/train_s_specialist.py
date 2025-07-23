@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report # 評価レポート用
+from sklearn.metrics import classification_report 
 from tqdm import tqdm
 
 # --- 設定 ---
@@ -13,7 +13,6 @@ PROCESSED_DATA_DIR = './data/processed/'
 MODEL_SAVE_PATH = './models/'
 INPUT_SIZE, BATCH_SIZE, NUM_EPOCHS, LR = 288, 128, 20, 0.001
 
-# --- CNN-LSTM ハイブリッドモデル定義 (変更なし) ---
 class CNN_LSTM(nn.Module):
     def __init__(self, num_classes=2): # NとSの2クラス分類
         super(CNN_LSTM, self).__init__()
@@ -64,7 +63,6 @@ def train_s_model():
     torch.save(model.state_dict(), os.path.join(MODEL_SAVE_PATH, 's_specialist_model.pth'))
     print("\nS-specialist model training complete and saved.")
 
-    # --- ▼▼▼ ここからが追加された評価ロジック ▼▼▼ ---
     print("\n--- Evaluating S-specialist model on validation set ---")
     model.eval()
     all_preds, all_labels = [], []
@@ -79,7 +77,6 @@ def train_s_model():
     class_names = ['N (Normal)', 'S (Supraventricular)']
     print("\nValidation Classification Report:")
     print(classification_report(all_labels, all_preds, target_names=class_names, zero_division=0))
-    # --- ▲▲▲ 評価ロジックここまで ▲▲▲ ---
 
 if __name__ == '__main__':
     train_s_model()

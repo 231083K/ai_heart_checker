@@ -10,11 +10,8 @@ import matplotlib.pyplot as plt
 import io
 import base64
 
-# =============================================================================
-# ▼▼▼ モデル定義とヘルパー関数を全てこのファイルに集約 ▼▼▼
-# =============================================================================
 
-# --- モデルA: シンプルなCNN（これまでの最終モデル） ---
+# --- モデルA: シンプルなCNN ---
 class ECG_CNN(nn.Module):
     def __init__(self, num_classes=4):
         super(ECG_CNN, self).__init__()
@@ -74,11 +71,11 @@ class ECG_ResNet(nn.Module):
         out = out.view(out.size(0), -1); out = self.fc(out)
         return out
 
-# --- グローバル変数として両方のモデルを一度だけロード ---
+
 device = torch.device("cpu")
-# モデルAのロード（ファイル名は適宜修正してください）
+# モデルAのロード
 model_cnn = ECG_CNN().to(device)
-model_cnn.load_state_dict(torch.load('./models/ultimate_model.pth', map_location=device))
+model_cnn.load_state_dict(torch.load('./models/best_model_CNN.pth', map_location=device))
 model_cnn.eval()
 print("Successfully loaded ECG_CNN model.")
 # モデルBのロード
@@ -87,12 +84,11 @@ model_resnet.load_state_dict(torch.load('./models/best_model_resnet.pth', map_lo
 model_resnet.eval()
 print("Successfully loaded ECG_ResNet model.")
 
-# --- R波検出アルゴリズム (自己完結) ---
+# --- R波検出アルゴリズム ---
 def bandpass_filter(data, lowcut=5.0, highcut=15.0, fs=360, order=1):
     nyquist = 0.5 * fs; low = lowcut / nyquist; high = highcut / nyquist
     b, a = butter(order, [low, high], btype='band'); return filtfilt(b, a, data)
 def pan_tompkins_detect(sig, fs):
-    # (この関数の中身は変更なし)
     filtered_sig = bandpass_filter(sig, fs=fs); diff_sig = np.diff(filtered_sig); squared_sig = diff_sig**2
     window_size = int(0.150 * fs); integrated_sig = np.convolve(squared_sig, np.ones(window_size)/window_size, mode='same')
     qrs_peaks, search_radius = [], int(0.2 * fs); noise_peak, signal_peak, threshold = 0.0, 0.0, 0.0
@@ -107,7 +103,7 @@ def pan_tompkins_detect(sig, fs):
         if qrs_peaks[i] - final_peaks[-1] > search_radius: final_peaks.append(qrs_peaks[i])
     return np.array(final_peaks)
 
-# --- ★★★ アンサンブル推論を行うコア関数 ★★★ ---
+
 def run_ensemble_diagnosis(ecg_signal, fs):
     TARGET_FS, SEG_PRE, SEG_POST = 360, 108, 180
     if fs != TARGET_FS: ecg_signal = resample(ecg_signal, int(len(ecg_signal) * TARGET_FS / fs))
@@ -130,12 +126,11 @@ def run_ensemble_diagnosis(ecg_signal, fs):
         probs_cnn = F.softmax(outputs_cnn, dim=1)
         probs_resnet = F.softmax(outputs_resnet, dim=1)
         
-        # 2つのモデルの予測確率を平均化
+
         avg_probs = (probs_cnn + probs_resnet) / 2
         
         _, predictions = torch.max(avg_probs, 1)
 
-    # (これ以降の結果集計、可視化、リスク評価のロジックは変更なし)
     predictions = predictions.cpu().numpy(); class_names = ['N (正常)', 'S (上室性)', 'V (心室性)', 'Q/F (その他)']; counts = {name: 0 for name in class_names}
     for pred in predictions: counts[class_names[pred]] += 1
     total_beats, abnormal_beats = len(predictions), len(predictions) - counts.get('N (正常)', 0); abnormal_percentage = (abnormal_beats / total_beats) * 100 if total_beats > 0 else 0

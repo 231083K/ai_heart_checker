@@ -10,7 +10,6 @@ from imblearn.over_sampling import SMOTE
 from collections import Counter
 from tqdm import tqdm
 
-# --- 必要なクラスと設定を全てこのファイルに集約 ---
 PROCESSED_DATA_DIR = './data/processed/'
 MODEL_SAVE_PATH = './models/'
 INPUT_SIZE, NUM_CLASSES, BATCH_SIZE, NUM_EPOCHS, LEARNING_RATE = 288, 4, 128, 30, 0.001

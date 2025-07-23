@@ -13,7 +13,6 @@ from imblearn.over_sampling import SMOTE
 from collections import Counter
 from tqdm import tqdm
 
-# --- グローバル設定 & ハイパーパラメータ (変更なし) ---
 PROCESSED_DATA_DIR = './data/processed/'
 MODEL_SAVE_PATH = './models/'
 FIGURE_SAVE_PATH = './figures/'
@@ -26,9 +25,6 @@ PRETRAIN_LR = 0.001
 FROZEN_FINETUNE_LR = 0.0001
 UNFROZEN_FINETUNE_LR = 1e-6
 
-# =============================================================================
-# ▼▼▼ ここからが今回の主要な追加・変更部分 ▼▼▼
-# =============================================================================
 
 # --- 1. Focal Lossのカスタムクラス定義 ---
 class FocalLoss(nn.Module):
@@ -57,12 +53,7 @@ class FocalLoss(nn.Module):
         else:
             return focal_loss
 
-# =============================================================================
-# ▲▲▲ ここまでがFocal Lossの定義 ▲▲▲
-# =============================================================================
 
-
-# --- 必要なクラスと関数定義 (以前の最終版スクリプトからコピー) ---
 def add_noise(signal, noise_level=0.05): return signal + np.random.normal(0, noise_level, signal.shape)
 def scale_amplitude(signal, scale_factor_range=(0.9, 1.1)): return signal * np.random.uniform(scale_factor_range[0], scale_factor_range[1])
 def time_shift(signal, max_shift=10): return np.roll(signal, np.random.randint(-max_shift, max_shift))
@@ -112,12 +103,10 @@ def run_focal_loss_training():
     # --- 1. 事前学習フェーズ ---
     pretrain_loader = prepare_pretrain_loader()
     model = ECG_CNN(num_classes=NUM_CLASSES).to(device)
-    # ★★★ 損失関数をFocalLossに変更 ★★★
     criterion = FocalLoss(gamma=2.0)
     optimizer = optim.Adam(model.parameters(), lr=PRETRAIN_LR)
 
     print("\n--- Phase 1: Pre-training with Focal Loss ---")
-    # ... (学習ループの中身は変更なし) ...
     for epoch in range(PRETRAIN_EPOCHS):
         model.train(); progress_bar = tqdm(pretrain_loader, desc=f"Pre-train Epoch {epoch+1}/{PRETRAIN_EPOCHS}")
         for inputs, labels in progress_bar:
@@ -131,7 +120,6 @@ def run_focal_loss_training():
     optimizer_ft = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=FROZEN_FINETUNE_LR)
 
     print("\n--- Phase 2: Frozen Fine-tuning with Focal Loss ---")
-    # ... (学習ループの中身は変更なし) ...
     for epoch in range(FINETUNE_EPOCHS):
         model.train(); progress_bar = tqdm(finetune_loader, desc=f"Frozen FT Epoch {epoch+1}/{FINETUNE_EPOCHS}")
         for inputs, labels in progress_bar:
@@ -142,7 +130,6 @@ def run_focal_loss_training():
     optimizer_full = optim.Adam(model.parameters(), lr=UNFROZEN_FINETUNE_LR)
 
     print("\n--- Phase 3: Unfrozen Full Fine-tuning with Focal Loss ---")
-    # ... (学習ループの中身は変更なし) ...
     for epoch in range(UNFROZEN_FINETUNE_EPOCHS):
         model.train(); progress_bar = tqdm(finetune_loader, desc=f"Full FT Epoch {epoch+1}/{UNFROZEN_FINETUNE_EPOCHS}")
         for inputs, labels in progress_bar:

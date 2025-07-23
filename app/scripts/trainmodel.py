@@ -26,10 +26,6 @@ PRETRAIN_LR = 0.001
 FROZEN_FINETUNE_LR = 0.0001
 UNFROZEN_FINETUNE_LR = 1e-6 # 全層ファインチューニングでは、非常に小さい学習率を使う
 
-# =============================================================================
-# ▼▼▼ 必要なクラスと関数を全てこのファイル内に定義 (外部インポートなし) ▼▼▼
-# =============================================================================
-
 # --- データ拡張のための関数群 ---
 def add_noise(signal, noise_level=0.05):
     noise = np.random.normal(0, noise_level, signal.shape)
@@ -113,9 +109,6 @@ def evaluate(model, test_loader, device, figure_savename):
     plt.savefig(os.path.join(FIGURE_SAVE_PATH, figure_savename))
     print(f"Confusion matrix saved to {os.path.join(FIGURE_SAVE_PATH, figure_savename)}")
 
-# =============================================================================
-# ▲▲▲ ここまでがインポートの代わりの定義部分 ▲▲▲
-# =============================================================================
 
 def prepare_pretrain_loader():
     print("--- Loading data for Pre-training Phase ---")

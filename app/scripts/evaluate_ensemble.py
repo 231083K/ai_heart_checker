@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from tqdm import tqdm
 
-# --- 必要なモデルのアーキテクチャを全て定義 ---
 
 # モデルA (シンプルなCNN)
 class ECG_CNN(nn.Module):
@@ -56,13 +55,13 @@ def evaluate_ensemble_model():
 
     # --- 1. 2つのモデルをロード ---
     print("Loading models...")
-    # モデル1: 転移学習モデル（'S'に比較的強い総合医）
-    model_transfer = ECG_ResNet().to(device) # こちらはResNetと仮定
+    # モデル1: 転移学習モデル
+    model_transfer = ECG_ResNet().to(device) 
     model_transfer.load_state_dict(torch.load('./models/best_model_resnet.pth', map_location=device))
     model_transfer.eval()
     print(" -> ResNet Transfer Learning model loaded.")
 
-    # モデル2: SMOTE特化モデル（'V'に強い専門医）
+    # モデル2: SMOTE特化モデル
     model_smote = ECG_CNN().to(device)
     model_smote.load_state_dict(torch.load('./models/best_model_smote.pth', map_location=device))
     model_smote.eval()
@@ -94,13 +93,12 @@ def evaluate_ensemble_model():
             all_preds.extend(final_preds.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
 
-    # --- 4. 最終評価レポート ---
+    # --- 4. 最終評価 ---
     class_names = ['N', 'S', 'V', 'Q/F']
     print("\n--- Final Ensemble Model Performance ---")
     print("\nClassification Report:")
     print(classification_report(all_labels, all_preds, target_names=class_names, zero_division=0))
-    
-    # 混同行列の保存
+
     cm = confusion_matrix(all_labels, all_preds)
     plt.figure(figsize=(8, 6))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)

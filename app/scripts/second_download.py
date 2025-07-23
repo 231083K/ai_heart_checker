@@ -63,13 +63,11 @@ def final_robust_download_ptbxl():
         print("Error: 'ptbxl_database.csv' not found.")
         return
 
-    # これからダウンロードするファイル名のリストを生成
     files_to_download = []
     for index, row in metadata_df.iterrows():
-        lr_base = row['filename_lr']  # 例: 'records100/00000/00001_lr'
-        hr_base = row['filename_hr']  # 例: 'records500/00000/00001_hr'
+        lr_base = row['filename_lr']  
+        hr_base = row['filename_hr']  
         
-        # ★★★ ここが重要な修正点：手動で拡張子を付与 ★★★
         files_to_download.append(f"{lr_base}.dat")
         files_to_download.append(f"{lr_base}.hea")
         files_to_download.append(f"{hr_base}.dat")
@@ -82,7 +80,6 @@ def final_robust_download_ptbxl():
         for filename in files_to_download:
             url = f"{BASE_URL}{filename}"
             
-            # ディレクトリ構造を維持するために、ファイル名からディレクトリ部分を取得
             dir_part = os.path.dirname(filename)
             local_dir = os.path.join(DATA_DIR, dir_part)
             if not os.path.exists(local_dir):

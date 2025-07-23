@@ -8,8 +8,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from tqdm import tqdm
 
-# --- 以前のスクリプトから必要なクラスをコピー ---
-# (自己完結型にするため)
 class CNN_LSTM(nn.Module):
     def __init__(self, num_classes=2):
         super(CNN_LSTM, self).__init__()
@@ -28,8 +26,7 @@ class CNN_LSTM(nn.Module):
 PROCESSED_DATA_DIR = './data/processed/'
 MODEL_SAVE_PATH = './models/'
 INPUT_SIZE, BATCH_SIZE, NUM_EPOCHS = 288, 128, 20
-# ★★★ OneCycleLR用の学習率設定 ★★★
-MAX_LR = 0.001 # 学習率の最大値
+MAX_LR = 0.001 
 
 def train_s_model_one_cycle():
     print("--- Training S-specialist model with One-Cycle LR ---")
@@ -50,9 +47,8 @@ def train_s_model_one_cycle():
     
     model = CNN_LSTM().to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=MAX_LR) # 初期学習率は最大値に設定されることが多い
+    optimizer = optim.Adam(model.parameters(), lr=MAX_LR) 
 
-    # --- ★★★ OneCycleLRスケジューラの定義 ★★★ ---
     scheduler = torch.optim.lr_scheduler.OneCycleLR(
         optimizer,
         max_lr=MAX_LR,
@@ -70,11 +66,10 @@ def train_s_model_one_cycle():
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
-            # ★★★ ステップごとにスケジューラを更新 ★★★
+
             scheduler.step()
             progress_bar.set_postfix(loss=f"{loss.item():.4f}", lr=f"{scheduler.get_last_lr()[0]:.1e}")
 
-    # (評価ロジックは変更なし)
     if not os.path.exists(MODEL_SAVE_PATH): os.makedirs(MODEL_SAVE_PATH)
     torch.save(model.state_dict(), os.path.join(MODEL_SAVE_PATH, 's_specialist_model_onecycle.pth'))
     print("\nS-specialist model (One-Cycle LR) training complete and saved.")

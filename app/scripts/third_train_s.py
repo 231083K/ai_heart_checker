@@ -9,8 +9,7 @@ from sklearn.metrics import classification_report
 from tqdm import tqdm
 from tsaug import AddNoise, Quantize, Drift, TimeWarp
 
-# --- データ拡張の定義 (ユーザー様発見の正しい形式) ---
-# 複数の拡張処理からランダムに1つを選択して実行するパイプライン
+
 augmenter = (
     TimeWarp(n_speed_change=5, max_speed_ratio=3, prob=1.0) +
     AddNoise(scale=0.05, prob=1.0) +
@@ -18,7 +17,6 @@ augmenter = (
     Drift(max_drift=0.1, prob=1.0)
 )
 
-# --- カスタムDatasetクラス (augment呼び出しを修正) ---
 class ECGDataset(Dataset):
     def __init__(self, data, labels, transform=None):
         self.data = data.astype(np.float32)
@@ -31,23 +29,19 @@ class ECGDataset(Dataset):
         label = self.labels[idx]
         if self.transform:
             signal_3d = signal.reshape(1, -1, 1)
-            # ★★★ ここが重要な修正点：不要な 'y' 引数を削除 ★★★
             signal_aug = self.transform.augment(signal_3d)
             signal = signal_aug[0, :, 0]
         return torch.tensor(signal, dtype=torch.float32).unsqueeze(0), torch.tensor(label, dtype=torch.long)
 
-# --- CNN-LSTMモデル定義 (変更なし) ---
 class CNN_LSTM(nn.Module):
     def __init__(self, num_classes=2):
         super(CNN_LSTM, self).__init__(); self.conv1 = nn.Sequential(nn.Conv1d(1, 64, 16, 2, 7), nn.BatchNorm1d(64), nn.ReLU()); self.conv2 = nn.Sequential(nn.Conv1d(64, 128, 8, 2, 3), nn.BatchNorm1d(128), nn.ReLU()); self.lstm = nn.LSTM(input_size=128, hidden_size=100, num_layers=2, batch_first=True, bidirectional=True); self.fc = nn.Linear(100 * 2, num_classes)
     def forward(self, x):
         x = self.conv1(x); x = self.conv2(x); x = x.permute(0, 2, 1); x, _ = self.lstm(x); x = self.fc(x[:, -1, :]); return x
 
-# --- 設定 (変更なし) ---
 PROCESSED_DATA_DIR = './data/processed/'; MODEL_SAVE_PATH = './models/'
 BATCH_SIZE, NUM_EPOCHS, MAX_LR = 128, 30, 0.001
 
-# --- メイン実行関数 (変更なし) ---
 def train_s_model_advanced():
     print("--- Training S-specialist model with Advanced Augmentation + One-Cycle LR ---")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

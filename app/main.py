@@ -1,4 +1,3 @@
-# (import文などは変更なし)
 import os, tempfile, shutil
 from typing import List, Annotated
 from fastapi import FastAPI, Request, File, UploadFile, Depends, Form, HTTPException, status
@@ -9,6 +8,7 @@ from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 from ai_model import diagnose_wfdb_record, diagnose_csv_file
 import database, auth, schemas
+
 
 database.create_db_and_tables()
 app = FastAPI(title="心拍診断AIチェッカー")
@@ -24,7 +24,7 @@ async def get_current_user(request: Request, db: Session = Depends(get_db)):
     if username is None: return None
     return get_user(db, username=username)
 
-# --- ログイン/登録ページのGETエンドポイント (変更なし) ---
+
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request): return templates.TemplateResponse("login.html", {"request": request})
 @app.get("/register", response_class=HTMLResponse)
@@ -55,11 +55,9 @@ async def register_user(request: Request, username: str = Form(...), password: s
     new_user = database.User(username=username, hashed_password=hashed_password)
     db.add(new_user); db.commit(); db.refresh(new_user)
     
-    # 登録成功メッセージをクエリパラメータで渡してログインページにリダイレクト
     return RedirectResponse(url="/login?msg=success", status_code=status.HTTP_302_FOUND)
 
 
-# --- ログアウト、トップページ、診断、履歴のエンドポイント (変更なし) ---
 @app.get("/logout")
 async def logout(): response = RedirectResponse(url="/login"); response.delete_cookie(key="access_token"); return response
 @app.get("/", response_class=HTMLResponse)

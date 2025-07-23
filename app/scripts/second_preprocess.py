@@ -5,8 +5,6 @@ import wfdb
 from scipy.signal import butter, filtfilt, resample
 from tqdm import tqdm
 
-# --- Pan-Tompkins法 R波検出アルゴリズム ---
-# この関数はwfdb.processingに依存せず、NumpyとScipyのみで動作します。
 def pan_tompkins_detect(sig, fs):
     # 1. バンドパスフィルタ
     low = 5.0 / (fs / 2)
@@ -25,7 +23,6 @@ def pan_tompkins_detect(sig, fs):
     integrated_sig = np.convolve(squared_sig, np.ones(window_size)/window_size, mode='same')
     
     # 5. ピーク検出
-    # (簡易的なピーク検出ロジック)
     qrs_peaks_indices = []
     search_radius = int(0.2 * fs)
     
@@ -36,7 +33,6 @@ def pan_tompkins_detect(sig, fs):
             break
         
         peak_idx = np.argmax(window)
-        # 閾値処理（信号の平均値の数倍などを閾値とする）
         if window[peak_idx] > 0.5 * np.mean(integrated_sig):
             qrs_peaks_indices.append(i + peak_idx)
             i += search_radius
@@ -68,7 +64,6 @@ def final_preprocess_ptbxl():
         file_path_100hz = os.path.join(PTBXL_DATA_DIR, row['filename_lr'])
 
         try:
-            # 古いバージョンでも動作するよう、引数なしで呼び出す
             signal_100hz, fields = wfdb.rdsamp(file_path_100hz)
         except Exception:
             continue
@@ -78,8 +73,6 @@ def final_preprocess_ptbxl():
         signal_target_fs = resample(signal_100hz, num_samples_target)
         ecg_signal = signal_target_fs[:, 0].astype(np.float64)
 
-        # ★★★ ここが重要な修正点 ★★★
-        # wfdbの壊れた機能の代わりに、自前のPan-Tompkins法を呼び出す
         r_peaks = pan_tompkins_detect(sig=ecg_signal, fs=TARGET_FS)
         
         if len(r_peaks) == 0:

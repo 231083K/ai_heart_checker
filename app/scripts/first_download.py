@@ -4,10 +4,9 @@ import time
 
 # データベース名 (PhysioNet上)
 DB_NAME = 'mitdb'
-# データを保存するローカルディレクトリ
+# データを保存するディレクトリ
 DATA_DIR = './data/mit-bih-db'
 
-# MIT-BIH Arrhythmia Database の全48レコードのリスト
 RECORD_LIST = [
     '100', '101', '102', '103', '104', '105', '106', '107', '108', '109',
     '111', '112', '113', '114', '115', '116', '117', '118', '119', '121',
@@ -18,13 +17,10 @@ RECORD_LIST = [
 
 def download_all_records():
     """
-    os.chdirを使い、カレントディレクトリを変更することで保存場所を制御する、
-    最も互換性の高い方法で全レコードをダウンロードする。
     """
     print(f"--- Starting full download for database: {DB_NAME} (os.chdir method) ---")
     print(f"Targeting {len(RECORD_LIST)} records.")
 
-    # データ保存用ディレクトリがなければ作成
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
         print(f"Created local directory: {DATA_DIR}")
@@ -36,32 +32,26 @@ def download_all_records():
     # 元の作業ディレクトリを記憶
     original_cwd = os.getcwd()
 
-    # 全レコードに対してループ処理
     for i, record_name in enumerate(RECORD_LIST):
         print(f"\nProcessing record: {record_name} ({i + 1}/{len(RECORD_LIST)})...")
         
         try:
-            # ダウンロード先ディレクトリに移動
             os.chdir(DATA_DIR)
             
-            # レコードとアノテーションを読み込み（引数を最小限にする）
-            # この場合、ファイルはカレントディレクトリ（DATA_DIR）にダウンロードされる
             record = wfdb.rdrecord(record_name, pn_dir=DB_NAME)
             annotation = wfdb.rdann(record_name, 'atr', pn_dir=DB_NAME)
             
-            # 読み込み成功の確認
             assert len(record.p_signal) > 0
             assert len(annotation.symbol) > 0
 
             print(f"  -> SUCCESS: Record '{record_name}' downloaded and verified.")
             success_count += 1
         except Exception as e:
-            # エラーが発生した場合はスキップ
             print(f"  -> FAILED to process record '{record_name}'. Skipping.")
             print(f"     Error details: {e}")
             failure_count += 1
         finally:
-            # 必ず元の作業ディレクトリに戻る
+            # 元の作業ディレクトリに戻る
             os.chdir(original_cwd)
 
     end_time = time.time()

@@ -9,19 +9,17 @@
 <body>
     <div class="container">
         <header class="header">
-            <h1><a href="/" style="text-decoration: none; color: inherit;">心拍診断AIチェッカー</a></h1>
+            <h1><a href="/">心拍診断AIチェッカー</a></h1>
+                <div id="theme-switch" class="theme-switch" title="テーマを切り替え">
+                    <div class="theme-switch-toggle"></div>
+                </div>
             <nav class="nav-container">
                 {% if current_user %}
                     <button id="hamburger-btn" class="hamburger-btn">
-                        <span class="bar"></span>
-                        <span class="bar"></span>
-                        <span class="bar"></span>
+                        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
                     </button>
-
                     <div id="nav-menu" class="nav-menu">
-                        <div class="user-info">
-                            {{ current_user.username }} さん
-                        </div>
+                        <div class="user-info">ようこそ, {{ current_user.username }} さん</div>
                         <a href="/">診断AIホーム</a>
                         <a href="/history">診断履歴</a>
                         <a href="/logout">ログアウト</a>
@@ -32,35 +30,52 @@
                 {% endif %}
             </nav>
         </header>
-
         <main>
             {% block content %}{% endblock %}
         </main>
     </div>
-
-    {% if current_user %}
+    
     <script>
+        // --- テーマ切替のスクリプト ---
+        const themeSwitch = document.getElementById('theme-switch');
+        const body = document.body;
+
+        // ページ読み込み時に、保存されたテーマを適用
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            body.classList.add('light-mode');
+        }
+
+        // スイッチクリック時の動作（メニュー内にある場合）
+        if (themeSwitch) {
+            themeSwitch.addEventListener('click', (event) => {
+                event.stopPropagation(); // メニューが閉じるのを防ぐ
+                body.classList.toggle('light-mode');
+                if (body.classList.contains('light-mode')) {
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    localStorage.removeItem('theme');
+                }
+            });
+        }
+
+        // --- ハンバーガーメニューのスクリプト ---
         const hamburgerBtn = document.getElementById('hamburger-btn');
         const navMenu = document.getElementById('nav-menu');
-
-        // ボタンクリックでメニューの表示/非表示を切り替える
-        hamburgerBtn.addEventListener('click', (event) => {
-            event.stopPropagation(); // 親要素へのクリックイベントの伝播を停止
-            navMenu.classList.toggle('is-active');
-        });
-
-        // メニューの外側をクリックしたらメニューを閉じる
-        document.addEventListener('click', () => {
-            if (navMenu.classList.contains('is-active')) {
-                navMenu.classList.remove('is-active');
-            }
-        });
-        
-        // メニュー自体のクリックでは閉じないようにする
-        navMenu.addEventListener('click', (event) => {
-            event.stopPropagation();
-        });
+        if (hamburgerBtn && navMenu) {
+            hamburgerBtn.addEventListener('click', (event) => {
+                event.stopPropagation();
+                navMenu.classList.toggle('is-active');
+            });
+            document.addEventListener('click', () => {
+                if (navMenu.classList.contains('is-active')) {
+                    navMenu.classList.remove('is-active');
+                }
+            });
+            navMenu.addEventListener('click', (event) => {
+                // if (!event.target.closest('#theme-switch')) { ... }
+            });
+        }
     </script>
-    {% endif %}
 </body>
 </html>

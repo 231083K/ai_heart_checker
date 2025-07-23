@@ -6,13 +6,10 @@ from sqlalchemy.ext.declarative import declarative_base
 # データベース接続URL (docker-compose.ymlで設定したもの)
 DATABASE_URL = "postgresql://user:password@db:5432/heart_db"
 
-# SQLAlchemyのエンジンを作成
 engine = create_engine(DATABASE_URL)
 
-# DBセッションを作成するためのクラス
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# テーブル定義のベースクラス
 Base = declarative_base()
 
 
@@ -24,7 +21,6 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
 
-    # UserからAnalysisResultへのリレーションシップ
     results = relationship("AnalysisResult", back_populates="owner")
 
 
@@ -35,8 +31,6 @@ class AnalysisResult(Base):
     id = Column(Integer, primary_key=True, index=True)
     created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))
     source_filename = Column(String, index=True)
-    
-    # --- ここが前回省略されていたカラムです ---
     total_beats = Column(Integer)
     normal_beats = Column(Integer)
     s_beats = Column(Integer)
@@ -45,12 +39,9 @@ class AnalysisResult(Base):
     abnormal_percentage = Column(Float)
     risk_level = Column(String)
     summary_text = Column(String)
-    # -----------------------------------------
 
-    # Userテーブルと紐付けるための外部キー
     owner_id = Column(Integer, ForeignKey("users.id"))
 
-    # AnalysisResultからUserへのリレーションシップ
     owner = relationship("User", back_populates="results")
 
 

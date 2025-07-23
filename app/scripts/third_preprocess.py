@@ -5,7 +5,6 @@ from tqdm import tqdm
 from scipy.signal import butter, filtfilt, resample
 from collections import Counter
 
-# (Pan-Tompkins関連の関数定義は変更なし)
 def bandpass_filter(data, lowcut=5.0, highcut=15.0, fs=360, order=1):
     nyquist = 0.5 * fs; low = lowcut / nyquist; high = highcut / nyquist
     b, a = butter(order, [low, high], btype='band'); return filtfilt(b, a, data)
@@ -53,7 +52,6 @@ def preprocess_svdb():
         ecg_signal_original = signal[:, 0].astype(np.float64)
         original_fs = fields['fs']
 
-        # ★★★ ここが重要な修正点：リサンプリング処理を追加 ★★★
         if original_fs != TARGET_FS:
             num_samples_target = int(len(ecg_signal_original) * TARGET_FS / original_fs)
             ecg_signal = resample(ecg_signal_original, num_samples_target)
@@ -63,14 +61,13 @@ def preprocess_svdb():
         r_peaks = pan_tompkins_detect(sig=ecg_signal, fs=TARGET_FS)
         
         for r_peak in r_peaks:
-            # アノテーションのサンプル位置もリサンプリング後のスケールに変換
             ann_indices = np.where(np.abs(annotation.sample * (TARGET_FS / original_fs) - r_peak) < TARGET_FS / 2)[0]
             if len(ann_indices) == 0: continue
             symbol = annotation.symbol[ann_indices[0]]
             
             label = -1
-            if symbol in ['N', 'L', 'R', 'e', 'j']: label = 0 # Normal
-            elif symbol in ['A', 'a', 'J', 'S']: label = 1 # Supraventricular
+            if symbol in ['N', 'L', 'R', 'e', 'j']: label = 0 
+            elif symbol in ['A', 'a', 'J', 'S']: label = 1 
             else: continue
             
             if r_peak - SEG_PRE < 0 or r_peak + SEG_POST >= len(ecg_signal): continue

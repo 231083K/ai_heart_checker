@@ -4,20 +4,22 @@
 
 {% block content %}
 <h2>診断結果</h2>
-
 {% if results.error %}
-    <div class="risk-summary risk-high">
-        <h2>エラー</h2>
-        <p class="text">{{ results.error }}</p>
+    <div class="content-box">
+        <h3 style="color: var(--risk-high);">エラー</h3>
+        <p>{{ results.error }}</p>
     </div>
 {% else %}
-    <div class="risk-summary risk-{{ results.summary.level }}">
+    <div class="summary-card content-box">
         <h2>総合評価</h2>
-        <p class="percentage">異常な心拍の割合: {{ "%.1f"|format(results.summary.abnormal_percentage) }}%</p>
-        <p class="text">{{ results.summary.text }}</p>
+        <div class="risk-display-bar risk-{{ results.summary.level }}">
+            <span>異常な心拍の割合</span>
+            <span class="percentage">{{ "%.1f"|format(results.summary.abnormal_percentage) }}%</span>
+        </div>
+        <p class="summary-text">{{ results.summary.text }}</p>
     </div>
 
-    <div class="result-container">
+    <div class="result-container" style="margin-top: 2em;">
         <div class="plot content-box">
             <h3>心電図波形（最初の10秒）</h3>
             <p>AIが異常の可能性があると判断した心拍をハイライトしています。</p>
@@ -26,20 +28,17 @@
         <div class="summary content-box">
             <h3>詳細な診断結果</h3>
             <table>
-                <tr>
-                    <th>心拍タイプ</th>
-                    <th>検出数</th>
-                </tr>
-                {% for class_name, count in results.counts.items() %}
-                <tr>
-                    <td>{{ class_name }}</td>
-                    <td>{{ count }}</td>
-                </tr>
-                {% endfor %}
+                <thead>
+                    <tr><th>心拍タイプ</th><th>検出数</th></tr>
+                </thead>
+                <tbody>
+                    {% for class_name, count in results.counts.items() %}
+                    <tr><td>{{ class_name }}</td><td>{{ count }}</td></tr>
+                    {% endfor %}
+                </tbody>
             </table>
         </div>
     </div>
 {% endif %}
-
 <a href="/" style="display:block; text-align:center; margin-top:2em;">別のファイルを診断する</a>
 {% endblock %}
