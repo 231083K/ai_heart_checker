@@ -5,13 +5,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import wfdb
-from scipy.signal import resample, butter, filtfilt
+from scipy.signal import butter, filtfilt, resample
 import matplotlib.pyplot as plt
 import io
 import base64
 
 
-# --- モデルA: シンプルなCNN ---
 class ECG_CNN(nn.Module):
     def __init__(self, num_classes=4):
         super(ECG_CNN, self).__init__()
@@ -28,7 +27,6 @@ class ECG_CNN(nn.Module):
         x = self.conv_layers(x); x = x.view(x.size(0), -1); x = self.fc_layers(x)
         return x
 
-# --- モデルB: ResNet ---
 class ResidualBlock(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1):
         super(ResidualBlock, self).__init__()
@@ -46,7 +44,6 @@ class ResidualBlock(nn.Module):
         out = F.relu(self.bn1(self.conv1(x))); out = self.bn2(self.conv2(out))
         out += self.shortcut(x); out = F.relu(out)
         return out
-
 class ECG_ResNet(nn.Module):
     def __init__(self, num_classes=4):
         super(ECG_ResNet, self).__init__()
@@ -71,27 +68,42 @@ class ECG_ResNet(nn.Module):
         out = out.view(out.size(0), -1); out = self.fc(out)
         return out
 
+class CNN_LSTM(nn.Module):
+    def __init__(self, num_classes=2):
+        super(CNN_LSTM, self).__init__()
+        self.conv1 = nn.Sequential(nn.Conv1d(1, 64, 16, 2, 7), nn.BatchNorm1d(64), nn.ReLU())
+        self.conv2 = nn.Sequential(nn.Conv1d(64, 128, 8, 2, 3), nn.BatchNorm1d(128), nn.ReLU())
+        self.lstm = nn.LSTM(input_size=128, hidden_size=100, num_layers=2, batch_first=True, bidirectional=True)
+        self.fc = nn.Linear(100 * 2, num_classes)
+    def forward(self, x):
+        x = self.conv1(x); x = self.conv2(x); x = x.permute(0, 2, 1)
+        x, _ = self.lstm(x); x = self.fc(x[:, -1, :])
+        return x
 
 device = torch.device("cpu")
-# モデルAのロード
-model_cnn = ECG_CNN().to(device)
-model_cnn.load_state_dict(torch.load('./models/best_model_CNN.pth', map_location=device))
-model_cnn.eval()
-print("Successfully loaded ECG_CNN model.")
-# モデルBのロード
+print("Loading all models for ensemble inference...")
+model_smote = ECG_CNN().to(device)
+model_smote.load_state_dict(torch.load('./models/best_model_smote.pth', map_location=device))
+model_smote.eval()
+print(" -> SMOTE-specialist model loaded.")
+
 model_resnet = ECG_ResNet().to(device)
 model_resnet.load_state_dict(torch.load('./models/best_model_resnet.pth', map_location=device))
 model_resnet.eval()
-print("Successfully loaded ECG_ResNet model.")
+print(" -> ResNet Transfer Learning model loaded.")
 
-# --- R波検出アルゴリズム ---
+model_s_specialist = CNN_LSTM().to(device)
+model_s_specialist.load_state_dict(torch.load('./models/best_model_S.pth', map_location=device))
+model_s_specialist.eval()
+print(" -> S-specialist model loaded.")
+print("All models loaded successfully.")
+
+
 def bandpass_filter(data, lowcut=5.0, highcut=15.0, fs=360, order=1):
-    nyquist = 0.5 * fs; low = lowcut / nyquist; high = highcut / nyquist
+    nyquist = 0.5 * fs; low, high = lowcut / nyquist, highcut / nyquist
     b, a = butter(order, [low, high], btype='band'); return filtfilt(b, a, data)
 def pan_tompkins_detect(sig, fs):
-    filtered_sig = bandpass_filter(sig, fs=fs); diff_sig = np.diff(filtered_sig); squared_sig = diff_sig**2
-    window_size = int(0.150 * fs); integrated_sig = np.convolve(squared_sig, np.ones(window_size)/window_size, mode='same')
-    qrs_peaks, search_radius = [], int(0.2 * fs); noise_peak, signal_peak, threshold = 0.0, 0.0, 0.0
+    filtered_sig = bandpass_filter(sig, fs=fs); diff_sig = np.diff(filtered_sig); squared_sig = diff_sig**2; window_size = int(0.150 * fs); integrated_sig = np.convolve(squared_sig, np.ones(window_size)/window_size, mode='same'); qrs_peaks, search_radius = [], int(0.2 * fs); noise_peak, signal_peak, threshold = 0.0, 0.0, 0.0
     for i in range(len(integrated_sig)):
         if i > 0 and i < len(integrated_sig) - 1 and integrated_sig[i-1] < integrated_sig[i] and integrated_sig[i+1] < integrated_sig[i]:
             peak_val = integrated_sig[i]; threshold = 0.125 * signal_peak + 0.875 * noise_peak
@@ -103,8 +115,7 @@ def pan_tompkins_detect(sig, fs):
         if qrs_peaks[i] - final_peaks[-1] > search_radius: final_peaks.append(qrs_peaks[i])
     return np.array(final_peaks)
 
-
-def run_ensemble_diagnosis(ecg_signal, fs):
+def run_diagnosis_pipeline(ecg_signal, fs):
     TARGET_FS, SEG_PRE, SEG_POST = 360, 108, 180
     if fs != TARGET_FS: ecg_signal = resample(ecg_signal, int(len(ecg_signal) * TARGET_FS / fs))
     r_peaks = pan_tompkins_detect(sig=ecg_signal.astype(np.float64), fs=TARGET_FS)
@@ -120,18 +131,20 @@ def run_ensemble_diagnosis(ecg_signal, fs):
     segments_tensor = torch.tensor(np.expand_dims(np.array(segments, dtype=np.float32), 1), dtype=torch.float32).to(device)
     
     with torch.no_grad():
-        outputs_cnn = model_cnn(segments_tensor)
-        outputs_resnet = model_resnet(segments_tensor)
+        probs_smote = F.softmax(model_smote(segments_tensor), dim=1)
+        probs_resnet = F.softmax(model_resnet(segments_tensor), dim=1)
+        avg_probs_4_class = (probs_smote + probs_resnet) / 2
+        _, initial_predictions = torch.max(avg_probs_4_class, 1)
         
-        probs_cnn = F.softmax(outputs_cnn, dim=1)
-        probs_resnet = F.softmax(outputs_resnet, dim=1)
+        outputs_s = model_s_specialist(segments_tensor)
+        _, predictions_s_specialist = torch.max(outputs_s, 1)
         
-
-        avg_probs = (probs_cnn + probs_resnet) / 2
-        
-        _, predictions = torch.max(avg_probs, 1)
-
-    predictions = predictions.cpu().numpy(); class_names = ['N (正常)', 'S (上室性)', 'V (心室性)', 'Q/F (その他)']; counts = {name: 0 for name in class_names}
+        final_predictions = initial_predictions.clone()
+        for i in range(len(initial_predictions)):
+            if initial_predictions[i] == 0 or initial_predictions[i] == 1:
+                final_predictions[i] = predictions_s_specialist[i]
+    
+    predictions = final_predictions.cpu().numpy(); class_names = ['N (正常)', 'S (上室性)', 'V (心室性)', 'Q/F (その他)']; counts = {name: 0 for name in class_names}
     for pred in predictions: counts[class_names[pred]] += 1
     total_beats, abnormal_beats = len(predictions), len(predictions) - counts.get('N (正常)', 0); abnormal_percentage = (abnormal_beats / total_beats) * 100 if total_beats > 0 else 0
     s_beats, v_beats = counts.get('S (上室性)', 0), counts.get('V (心室性)', 0)
@@ -153,15 +166,15 @@ def run_ensemble_diagnosis(ecg_signal, fs):
     plot_base64 = base64.b64encode(buf.read()).decode('utf-8'); plt.close()
     return {"counts": counts, "plot_base64": plot_base64, "summary": {"abnormal_percentage": abnormal_percentage, "text": summary_text, "level": risk_level}}
 
-# --- ファイル形式ごとのラッパー関数 ---
+# --- ラッパー関数 (変更なし) ---
 def diagnose_wfdb_record(record_path):
     try:
-        signal, fields = wfdb.rdsamp(record_path); return run_ensemble_diagnosis(signal[:, 0], fields['fs'])
+        signal, fields = wfdb.rdsamp(record_path); return run_diagnosis_pipeline(signal[:, 0], fields['fs'])
     except Exception as e: return {"error": f"WFDBファイルの処理エラー: {e}"}
 
 def diagnose_csv_file(file_path):
     try:
         df = pd.read_csv(file_path)
         if 'signal' not in df.columns: return {"error": "CSVに'signal'列がありません。"}
-        return run_ensemble_diagnosis(df['signal'].to_numpy(), fs=360)
+        return run_diagnosis_pipeline(df['signal'].to_numpy(), fs=360)
     except Exception as e: return {"error": f"CSVファイルの処理エラー: {e}"}

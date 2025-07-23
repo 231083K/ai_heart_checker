@@ -12,13 +12,13 @@ services:
     # GPUを使用する場合は以下のコメントを外す
     # ただし、DockerがNVIDIA GPUをサポートしている必要があります
     # 参考: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/heart_db
     # dbサービスが起動してからappサービスを起動する

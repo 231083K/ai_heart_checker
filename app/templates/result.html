@@ -4,19 +4,21 @@
 
 {% block content %}
 <h2>診断結果</h2>
+
 {% if results.error %}
     <div class="content-box">
-        <h3 style="color: var(--risk-high);">エラー</h3>
+        <h2 style="color: var(--risk-high);">エラー</h2>
         <p>{{ results.error }}</p>
     </div>
 {% else %}
-    <div class="summary-card content-box">
+    <div class="content-box">
         <h2>総合評価</h2>
-        <div class="risk-display-bar risk-{{ results.summary.level }}">
-            <span>異常な心拍の割合</span>
-            <span class="percentage">{{ "%.1f"|format(results.summary.abnormal_percentage) }}%</span>
-        </div>
-        <p class="summary-text">{{ results.summary.text }}</p>
+        <p class="text" style="font-size: 1.1em; margin: 0;">{{ results.summary.text }}</p>
+    </div>
+
+    <div class="risk-box risk-{{ results.summary.level }}">
+        <span>異常な心拍の割合:</span>
+        <span class="percentage">{{ "%.1f"|format(results.summary.abnormal_percentage) }}%</span>
     </div>
 
     <div class="result-container" style="margin-top: 2em;">
@@ -40,5 +42,6 @@
         </div>
     </div>
 {% endif %}
+
 <a href="/" style="display:block; text-align:center; margin-top:2em;">別のファイルを診断する</a>
 {% endblock %}
